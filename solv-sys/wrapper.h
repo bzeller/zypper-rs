@@ -1,0 +1,19 @@
+#include <pool.h>
+#include <poolarch.h>
+#include <evr.h>
+#include <selection.h>
+#include <repo.h>
+#include <solver.h>
+#include <solverdebug.h>
+#include <transaction.h>
+#include <testcase.h>
+#include <repo_autopattern.h>
+#if 0
+#include <repoinfo.h>
+#include <repoinfo_cache.h>
+#include <repoinfo_download.h>
+#include <fileprovides.h>
+#include <fileconflicts.h>
+#include <deltarpm.h>
+#include <patchjobs.h>
+#endif

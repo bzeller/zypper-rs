@@ -1,0 +1,7 @@
+[workspace]
+
+members = [
+    "solv-sys",
+    "zypp-rs",
+    "zypper-rs"
+]
