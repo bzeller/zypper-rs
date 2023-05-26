@@ -5,9 +5,7 @@ use std::fs;
 use std::path::PathBuf;
 
 fn main() {
-
-    // cmake -DCMAKE_VERBOSE_MAKEFILE=TRUE   -DCMAKE_BUILD_TYPE=Debug        -DWITH_LIBXML2=1        -DENABLE_APPDATA=1      -DENABLE_COMPS=1 -DENABLE_STATIC=1 -DDISABLE_SHARED=1 -DENABLE_SUSEREPO=1 -DENABLE_HELIXREPO=1 -DSUSE=1 -DENABLE_COMPLEX_DEPS=1 -DUSE_VENDORDIRS=1 -DENABLE_BZIP2_COMPRESSION=1 -DENABLE_ZSTD_COMPRESSION=1 -DENABLE_ZCHUNK_COMPRESSION=1
-
+    
     let libdir_path = PathBuf::from("libsolv")
         // Canonicalize the path as `rustc-link-search` requires an absolute
         // path.
