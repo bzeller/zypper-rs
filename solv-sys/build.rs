@@ -5,19 +5,22 @@ use std::fs;
 use std::path::PathBuf;
 
 fn main() {
-    
+
     let libdir_path = PathBuf::from("libsolv")
         // Canonicalize the path as `rustc-link-search` requires an absolute
         // path.
         .canonicalize()
-        .expect("cannot canonicalize path");
+        .expect("cannot canonicalize libsolv source dir");
+
+    // create builddir
+    fs::create_dir_all(PathBuf::from("build")).expect("Failed to create builddir");
 
     // our build directory
     let libdir_build_path = PathBuf::from("build")
         // Canonicalize the path as `rustc-link-search` requires an absolute
         // path.
         .canonicalize()
-        .expect("cannot canonicalize path");
+        .expect("cannot canonicalize libsolv build path");
 
     // The path were we will build libsolv into
     let lib_path = libdir_build_path.join("src");
@@ -37,9 +40,6 @@ fn main() {
 
     // Tell cargo to invalidate the built crate whenever the wrapper changes
     println!("cargo:rerun-if-changed=wrapper.h");
-
-    // create builddir
-    fs::create_dir_all(&libdir_build_path).expect("Failed to create builddir");
 
     // generate makefiles with cmake
     if !std::process::Command::new("cmake")
