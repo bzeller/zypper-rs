@@ -1,4 +1,4 @@
-use libsolv_sys::ffi as raw;
+use solv_sys as raw;
 use std::ffi::{CStr,CString, NulError};
 
 use super::repository::Repository;
