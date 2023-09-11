@@ -13,3 +13,4 @@ thiserror = "1.0.40"
 tokyo = "1.0.0"
 tribool = "0.3.0"
 url = { version = "2", features = ["serde"] }
+log = "0.4.19"

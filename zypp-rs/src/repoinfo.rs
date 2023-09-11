@@ -4,8 +4,9 @@ use tribool::Tribool::Indeterminate;
 use url::Url;
 use std::str::FromStr;
 use std::string::ToString;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use thiserror::Error;
+use log::warn;
 
 #[derive(Error, Debug)]
 pub enum ParseRepoFileError {
@@ -76,6 +77,8 @@ pub struct RepoInfo
   pub repo_type: RepoType,
   pub raw_gpg_check: tribool::Tribool,
   pub base_urls: Vec<Url>,
+  metadata_path: PathBuf,
+  packages_path: PathBuf
 }
 
 impl RepoInfo {
@@ -83,17 +86,35 @@ impl RepoInfo {
   fn from_section( sec: &str, prop: &ini::Properties ) -> Result<RepoInfo,Error> {
     let mut info = RepoInfo{ repo_alias: String::from(sec), ..Default::default() };
     for ( key, val ) in prop.iter() {
-      match key {
+      match key.to_lowercase().as_str() {
         "type" => info.repo_type = RepoType::from_str(val)?,
         "name" => info.repo_name = val.to_owned(),
         "raw_gpg_check" => info.raw_gpg_check = Tribool::from_str(val).map_err(|_e| ParseRepoFileError::InvalidValue { key: key.to_owned(), value: val.to_owned() } )?,
-        "baseurl" => println!("Seen baseurl {}", val),
-        &_ => println!("Seen {} {}", key, val), //ignore unknown fields
+        "baseurl" => info.base_urls.push( Url::from_str(val).map_err( |e| ParseRepoFileError::InvalidValue { key: key.to_owned(), value: val.to_owned() } )? ),
+        &_ => warn!("Seen unknown key {} with value {}", key, val), //ignore unknown fields but log them
       }
     }
     Ok(info)
   }
 
+  fn probe_cache<P: AsRef<Path>>( cache_path: P ) -> RepoType {
+    let mut rtype = RepoType::None;
+    if !cache_path.as_ref().is_dir() {
+      if cache_path.as_ref().join("repodata/repomd.xml").is_file() {
+        rtype = RepoType::RpmMd;
+      }
+      else if  cache_path.as_ref().join("content").is_file() {
+        rtype = RepoType::Yast2;
+      }
+      else if cache_path.as_ref().join("cookie").is_file() {
+        rtype = RepoType::RpmPlainDir;
+      }
+    }
+    return rtype;
+  }
+
+  // @TODO this uses a ini parser which is not exactly the file format we need for repo files
+  // but for now it is good enough so we can get started
   pub fn read_from_file<P: AsRef<Path>>( file_path: P) -> Result<Vec<RepoInfo>, Error> {
     let mut res: Vec<RepoInfo> = Vec::new();
 
@@ -107,4 +128,21 @@ impl RepoInfo {
     }
     Ok(res)
   }
+
+  pub fn set_metadata_path<P: AsRef<Path>>( & mut self, new_path: P ) {
+    self.metadata_path = new_path.as_ref().to_path_buf();
+  }
+
+  pub fn set_packages_path<P: AsRef<Path>>( & mut self, new_path: P ) {
+    self.packages_path = new_path.as_ref().to_path_buf();
+  }
+
+  pub fn metadata_path( &self ) -> &PathBuf {
+    &self.metadata_path
+  }
+
+  pub fn packages_path( &self ) -> &PathBuf {
+    &self.packages_path
+  }
+
 }
