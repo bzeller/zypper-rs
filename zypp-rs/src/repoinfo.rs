@@ -1,8 +1,9 @@
-use ini::Ini;
+use configparser::ini::Ini;
 use tribool::{self, Tribool};
 use tribool::Tribool::Indeterminate;
 use url::Url;
 use std::str::FromStr;
+use std::collections::HashMap;
 use std::string::ToString;
 use std::path::{Path, PathBuf};
 use thiserror::Error;
@@ -10,8 +11,8 @@ use log::warn;
 
 #[derive(Error, Debug)]
 pub enum ParseRepoFileError {
-  #[error(transparent)]
-  ParserError(#[from] ini::Error),
+  #[error("Failed to parse file with error: {0}.")]
+  ParserError(String),
   #[error("Value {value} for key {key} is not valid")]
   InvalidValue{
     key: String,
@@ -83,14 +84,34 @@ pub struct RepoInfo
 
 impl RepoInfo {
 
-  fn from_section( sec: &str, prop: &ini::Properties ) -> Result<RepoInfo,Error> {
+  fn from_section( sec: &str, prop: &HashMap<String, Option<String>> ) -> Result<RepoInfo,Error> {
     let mut info = RepoInfo{ repo_alias: String::from(sec), ..Default::default() };
-    for ( key, val ) in prop.iter() {
+    for ( key, maybeVal ) in prop.iter() {
+      if ( maybeVal.is_none() ) {
+        continue;
+      }
+      
+      let val = maybeVal.as_ref().unwrap();
+      let values: Vec<&str> = val.split('\n').collect();
+      if values.is_empty() {
+        continue;
+      }
+
+      // convenience access to the first value, usually we only need that
+      let first_val: &str = values.first().unwrap();
+
+      println!("Found key: {key} and val: {val}");
       match key.to_lowercase().as_str() {
-        "type" => info.repo_type = RepoType::from_str(val)?,
-        "name" => info.repo_name = val.to_owned(),
-        "raw_gpg_check" => info.raw_gpg_check = Tribool::from_str(val).map_err(|_e| ParseRepoFileError::InvalidValue { key: key.to_owned(), value: val.to_owned() } )?,
-        "baseurl" => info.base_urls.push( Url::from_str(val).map_err( |e| ParseRepoFileError::InvalidValue { key: key.to_owned(), value: val.to_owned() } )? ),
+        "type" => info.repo_type = RepoType::from_str(first_val)?,
+        "name" => info.repo_name = first_val.to_owned(),
+        "raw_gpg_check" => {
+            info.raw_gpg_check = Tribool::from_str(val.as_str()).map_err(|_e| ParseRepoFileError::InvalidValue { key: key.to_owned(), value: first_val.to_owned() } )?
+        },
+        "baseurl" => {
+          for urlstr in values {
+            info.base_urls.push( Url::from_str(urlstr).map_err( |e| ParseRepoFileError::InvalidValue { key: key.to_owned(), value: val.to_owned() } )? );
+          }
+        },
         &_ => warn!("Seen unknown key {} with value {}", key, val), //ignore unknown fields but log them
       }
     }
@@ -118,13 +139,15 @@ impl RepoInfo {
   pub fn read_from_file<P: AsRef<Path>>( file_path: P) -> Result<Vec<RepoInfo>, Error> {
     let mut res: Vec<RepoInfo> = Vec::new();
 
-    let repo_file = Ini::load_from_file(file_path).map_err(ParseRepoFileError::from)?;
+    let mut config = Ini::new();
+    config.set_multiline(true);
+    let repo_file = config.load(file_path).map_err(ParseRepoFileError::ParserError)?;
 
     for ( sec, prop ) in repo_file.iter()  {
-      if sec.is_none() || sec.unwrap().len() == 0  {
+      if sec.len() == 0  {
         continue;
       }
-      res.push( RepoInfo::from_section( &sec.unwrap(), &prop )? );
+      res.push( RepoInfo::from_section( &sec, &prop )? );
     }
     Ok(res)
   }
