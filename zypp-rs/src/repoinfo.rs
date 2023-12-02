@@ -1,6 +1,5 @@
 use configparser::ini::Ini;
 use tribool::{self, Tribool};
-use tribool::Tribool::Indeterminate;
 use url::Url;
 use std::str::FromStr;
 use std::collections::HashMap;
@@ -134,13 +133,12 @@ impl RepoInfo {
     return rtype;
   }
 
-  // @TODO this uses a ini parser which is not exactly the file format we need for repo files
-  // but for now it is good enough so we can get started
   pub fn read_from_file<P: AsRef<Path>>( file_path: P) -> Result<Vec<RepoInfo>, Error> {
     let mut res: Vec<RepoInfo> = Vec::new();
 
     let mut config = Ini::new();
     config.set_multiline(true);
+    
     let repo_file = config.load(file_path).map_err(ParseRepoFileError::ParserError)?;
 
     for ( sec, prop ) in repo_file.iter()  {

@@ -9,8 +9,14 @@ edition = "2021"
 gpgme = "0.11.0"
 solv-sys = { path = "../solv-sys" }
 thiserror = "1.0.40"
-tokyo = "1.0.0"
+tokio = { version="1", features=["full"] }
 tribool = "0.3.0"
 url = { version = "2", features = ["serde"] }
 log = "0.4.19"
 configparser = "3.0.2"
+async-trait = "0.1.74"
+byte-unit = "4.0.19"
+reqwest = { version="0.11.22", features=["stream"] }
+tempfile = "3.8.1"
+futures = "0.3.29"
+scopeguard = "1.2.0"

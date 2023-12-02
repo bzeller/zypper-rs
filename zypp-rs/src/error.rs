@@ -1,12 +1,11 @@
+use std::io;
+
 use thiserror::Error;
 use crate::repoinfo::Error as RepoInfoError;
-
-/*
- */
+use crate::media::MediaError as MediaError;
 
 #[derive(Error, Debug)]
 pub enum ZyppError {
-
     #[error("Media Error - {source}")]
     Media {
         #[from]
@@ -24,17 +23,14 @@ pub enum ZyppError {
         #[from]
         source: RepoInfoError
     },
+    #[error("IO Error - {source}")]
+    IoError{
+        #[from]
+        source: io::Error
+    },
 
     #[error("unknown error")]
     Unknown,
-}
-
-#[derive(Error, Debug)]
-pub enum MediaError {
-    #[error("The file was not found")]
-    FileNotFound,
-    #[error("The file did exist already")]
-    FileExists,
 }
 
 #[derive(Error, Debug)]

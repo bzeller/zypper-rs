@@ -85,4 +85,8 @@ impl RepoManager {
         }
         return s;
     }
+
+    pub async fn refreshMetadata( repos: &Vec<RepoInfo> ) {
+
+    }
 }
