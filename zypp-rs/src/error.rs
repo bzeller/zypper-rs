@@ -1,3 +1,4 @@
+use std::fmt::Display;
 use std::io;
 
 use thiserror::Error;
@@ -27,6 +28,11 @@ pub enum ZyppError {
     IoError{
         #[from]
         source: io::Error
+    },
+
+    #[error("Internal Error - {message}")]
+    Internal {
+        message: String
     },
 
     #[error("unknown error")]

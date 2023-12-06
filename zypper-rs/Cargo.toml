@@ -7,3 +7,5 @@ edition = "2021"
 
 [dependencies]
 zypp-rs = { path = "../zypp-rs" }
+tokio = { version="1", features=["full"] }
+url = { version = "2", features = ["serde"] }

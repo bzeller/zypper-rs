@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::{path::PathBuf, fs::File};
 use byte_unit::Byte;
 use tribool::Tribool::{self, True, False, Indeterminate};
 
@@ -21,7 +21,7 @@ impl MediaSpec {
         if self.verify_data_path.is_some() {
             return ( self.medianr == other.medianr ).into();
         }
-  
+
         // can't tell without the URL
         return Indeterminate;
     }
@@ -33,7 +33,7 @@ pub struct FileSpec {
     pub checkExistsOnly : bool,
     pub optional : bool,
     pub downloadSize : Byte,
-    
+
     //zypp::CheckSum  _checksum;
 
     pub openSize : Byte,
@@ -43,4 +43,17 @@ pub struct FileSpec {
     //zypp::CheckSum  _headerChecksum;
 
     pub deltafile: PathBuf
+}
+
+impl Default for FileSpec {
+    fn default() -> Self {
+        Self {
+            checkExistsOnly: false,
+            optional: false,
+            downloadSize: Byte::from_bytes(0),
+            openSize: Byte::from_bytes(0),
+            headerSize: Byte::from_bytes(0),
+            deltafile: Default::default()
+        }
+    }
 }

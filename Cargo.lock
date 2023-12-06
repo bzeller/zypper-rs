@@ -1681,5 +1681,7 @@ dependencies = [
 name = "zypper-rs"
 version = "0.1.0"
 dependencies = [
+ "tokio",
+ "url",
  "zypp-rs",
 ]
